@@ -352,5 +352,17 @@ def delete_user(user_id):
     flash('User berhasil dihapus.', 'success')
     return redirect(url_for('list_users'))
 
+with app.app_context():
+    db.create_all()
+
+    # Buat user admin dan user default jika belum ada
+    if not User.query.first():
+        from werkzeug.security import generate_password_hash
+        admin = User(username='admin', password=generate_password_hash('admin123'), role='admin')
+        user = User(username='user', password=generate_password_hash('user123'), role='user')
+        db.session.add_all([admin, user])
+        db.session.commit()
+        print("✅ Admin & User default berhasil dibuat.")
+
 if __name__ == '__main__':
     app.run(debug=True)
