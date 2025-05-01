@@ -1,0 +1,18 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<h2>Upload Laporan Excel</h2>
+
+{% if error %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+<form method="POST" enctype="multipart/form-data">
+  <div class="mb-3">
+    <label for="file" class="form-label">Pilih File Excel:</label>
+    <input type="file" name="file" class="form-control" required>
+  </div>
+  <button type="submit" class="btn btn-success">Upload dan Proses</button>
+  <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Batal</a>
+</form>
+{% endblock %}

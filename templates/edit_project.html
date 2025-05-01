@@ -1,0 +1,26 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<h2>Edit Proyek: {{ project.project_name }}</h2>
+
+<form method="POST">
+  <div class="mb-3">
+    <label>Entitas A</label>
+    <input type="text" name="entity_a" class="form-control" value="{{ project.entity_a }}" required>
+  </div>
+  <div class="mb-3">
+    <label>Porsi A (%)</label>
+    <input type="number" name="porsia" class="form-control" value="{{ project.porsia * 100 }}" required>
+  </div>
+  <div class="mb-3">
+    <label>Entitas B</label>
+    <input type="text" name="entity_b" class="form-control" value="{{ project.entity_b }}" required>
+  </div>
+  <div class="mb-3">
+    <label>Porsi B (%)</label>
+    <input type="number" name="porsib" class="form-control" value="{{ project.porsib * 100 }}" required>
+  </div>
+  <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+  <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Batal</a>
+</form>
+{% endblock %}

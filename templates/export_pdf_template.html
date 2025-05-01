@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Export Laporan - {{ project.project_name }}</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h2 { margin-bottom: 5px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
+    th, td { border: 1px solid #000; padding: 6px; text-align: left; }
+    th { background-color: #eee; }
+    .info { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  {% if with_header %}
+<p>Nama Proyek : {{ project.project_name }}</p>
+<hr>
+{% endif %}
+  <h2>Laporan Proyek</h2>
+  <p><strong>Nama Proyek:</strong> {{ project.project_name }}</p>
+  <p><strong>Entitas A:</strong> {{ project.entity_a }} ({{ project.porsia * 100 }}%)</p>
+  <p><strong>Entitas B:</strong> {{ project.entity_b }} ({{ project.porsib * 100 }}%)</p>
+  <p><strong>Total Posisi Keuangan:</strong> Rp {{ "{:,.0f}".format(project.total_lr or 0) }}</p>
+
+  <h4>Pembagian Keuangan</h4>
+  <table>
+    <thead>
+      <tr>
+        <th>Entitas</th>
+        <th>Porsi (%)</th>
+        <th>Nilai Pembagian (Rp)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>{{ project.entity_a }}</td>
+        <td>{{ project.porsia * 100 }}</td>
+        <td>Rp {{ "{:,.0f}".format(project.nilai_a or 0) }}</td>
+      </tr>
+      <tr>
+        <td>{{ project.entity_b }}</td>
+        <td>{{ project.porsib * 100 }}</td>
+        <td>Rp {{ "{:,.0f}".format(project.nilai_b or 0) }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4>Rincian Data Excel</h4>
+  <table>
+    <thead>
+      <tr>
+        <th>Account Number</th>
+        <th>Text for B/S P&L Item</th>
+        <th>Total of Reporting Period</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in details %}
+      <tr>
+        <td>{{ row.account_number or '-' }}</td>
+        <td>{{ row.text_item or '-' }}</td>
+        <td>Rp {{ "{:,.0f}".format(row.total_reporting_period or 0) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>

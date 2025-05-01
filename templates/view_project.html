@@ -1,0 +1,111 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<h2 class="mb-4">Detail Proyek: {{ project.project_name }}</h2>
+
+<div class="mb-3 d-flex flex-wrap gap-2">
+  <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">← Kembali ke Dashboard</a>
+  <form method="POST" action="{{ url_for('export_single_project_pdf', project_id=project.id) }}" style="display:inline;">
+    <button type="submit" class="btn btn-danger">Export ke PDF</button>
+  </form>
+  <a href="{{ url_for('export_single_project_excel', project_id=project.id) }}" class="btn btn-success">Export ke Excel</a>
+</div>
+
+<div class="mb-4">
+  <p><strong>Entitas A:</strong> {{ project.entity_a }} ({{ project.porsia * 100 | int }}%)</p>
+  <p><strong>Entitas B:</strong> {{ project.entity_b }} ({{ project.porsib * 100 | int }}%)</p>
+  <p><strong>Total Posisi Keuangan:</strong> Rp {{ "{:,.0f}".format(project.total_lr or 0) }}</p>
+</div>
+
+<hr class="my-4">
+
+<h4 class="mb-3">Visualisasi Pembagian</h4>
+<div class="row mb-5">
+  <div class="col-md-6">
+    <canvas id="barChart"></canvas>
+  </div>
+  <div class="col-md-6">
+    <canvas id="pieChart"></canvas>
+  </div>
+</div>
+
+<h4 class="mb-3">Detail Pembagian</h4>
+<table class="table table-striped table-bordered">
+  <thead class="table-dark">
+    <tr>
+      <th>Entitas</th>
+      <th>Porsi (%)</th>
+      <th>Nilai Pembagian (Rp)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>{{ project.entity_a }}</td>
+      <td>{{ project.porsia * 100 | int }}</td>
+      <td>Rp {{ "{:,.0f}".format(project.nilai_a or 0) }}</td>
+    </tr>
+    <tr>
+      <td>{{ project.entity_b }}</td>
+      <td>{{ project.porsib * 100 | int }}</td>
+      <td>Rp {{ "{:,.0f}".format(project.nilai_b or 0) }}</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 class="mb-3">Rincian Data dari Excel</h4>
+<table class="table table-striped table-bordered">
+  <thead class="table-dark">
+    <tr>
+      <th>Account Number</th>
+      <th>Text for B/S P&L Item</th>
+      <th>Total of Reporting Period</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in details %}
+    <tr>
+      <td>{{ row.account_number or '-' }}</td>
+      <td>{{ row.text_item or '-' }}</td>
+      <td>Rp {{ "{:,.0f}".format(row.total_reporting_period or 0) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const barCtx = document.getElementById('barChart').getContext('2d');
+  const pieCtx = document.getElementById('pieChart').getContext('2d');
+
+  new Chart(barCtx, {
+    type: 'bar',
+    data: {
+      labels: ['{{ project.entity_a }}', '{{ project.entity_b }}'],
+      datasets: [{
+        label: 'Nilai Pembagian',
+        data: [{{ project.nilai_a or 0 }}, {{ project.nilai_b or 0 }}],
+        backgroundColor: ['#4e73df', '#1cc88a']
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false
+    }
+  });
+
+  new Chart(pieCtx, {
+    type: 'pie',
+    data: {
+      labels: ['{{ project.entity_a }}', '{{ project.entity_b }}'],
+      datasets: [{
+        data: [{{ project.nilai_a or 0 }}, {{ project.nilai_b or 0 }}],
+        backgroundColor: ['#36b9cc', '#f6c23e']
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false
+    }
+  });
+</script>
+{% endblock %}

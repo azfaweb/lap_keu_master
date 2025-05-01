@@ -1,0 +1,39 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<style>
+  .fade-in {
+    animation: fadeIn 0.8s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+
+<div class="d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+  <div class="col-11 col-sm-8 col-md-5 col-lg-4 shadow p-4 rounded bg-white fade-in">
+    <div class="text-center mb-4">
+      <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" width="70">
+      <h5 class="mt-2 fw-bold">MONITORING SHARE LABA</h5>
+    </div>
+
+    {% if error %}
+      <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST">
+      <div class="mb-3">
+        <label class="form-label">Username</label>
+        <input type="text" name="username" class="form-control" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input type="password" name="password" class="form-control" required>
+      </div>
+      <button class="btn btn-primary w-100">Login</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

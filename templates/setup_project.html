@@ -1,0 +1,28 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<h2 class="mb-4">Setup Proyek dan Entitas</h2>
+<form method="POST" action="/setup">
+    <div class="mb-3">
+        <label for="project_name" class="form-label">Nama Proyek</label>
+        <input type="text" class="form-control" id="project_name" name="project_name" required>
+    </div>
+    <div class="mb-3">
+        <label for="entity_a" class="form-label">Nama Entitas A</label>
+        <input type="text" class="form-control" id="entity_a" name="entity_a" required>
+    </div>
+    <div class="mb-3">
+        <label for="porsia" class="form-label">Porsi Entitas A (%)</label>
+        <input type="number" class="form-control" id="porsia" name="porsia" min="0" max="100" required>
+    </div>
+    <div class="mb-3">
+        <label for="entity_b" class="form-label">Nama Entitas B</label>
+        <input type="text" class="form-control" id="entity_b" name="entity_b" required>
+    </div>
+    <div class="mb-3">
+        <label for="porsib" class="form-label">Porsi Entitas B (%)</label>
+        <input type="number" class="form-control" id="porsib" name="porsib" min="0" max="100" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Lanjut Upload Laporan</button>
+</form>
+{% endblock %}
