@@ -2,68 +2,205 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Export Laporan - {{ project.project_name }}</title>
+  <title>Laporan Proyek - {{ project.project_name }}</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    h2 { margin-bottom: 5px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
-    th, td { border: 1px solid #000; padding: 6px; text-align: left; }
-    th { background-color: #eee; }
-    .info { margin-top: 20px; }
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      margin: 40px;
+    }
+
+    h2, h4 {
+      margin-top: 40px;
+      font-size: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      font-size: 13px;
+    }
+
+    th, td {
+      border: 1px solid #000;
+      padding: 8px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background-color: #eee;
+    }
+
+    .section {
+      margin-bottom: 60px;
+    }
+
+    .page-break {
+      page-break-before: always;
+      break-before: always;
+    }
+
+    canvas {
+      display: block;
+      margin: auto;
+    }
+
+    @media print {
+      table, tr, td, th {
+        page-break-inside: avoid !important;
+      }
+    }
   </style>
 </head>
 <body>
-  {% if with_header %}
-<p>Nama Proyek : {{ project.project_name }}</p>
-<hr>
-{% endif %}
-  <h2>Laporan Proyek</h2>
-  <p><strong>Nama Proyek:</strong> {{ project.project_name }}</p>
-  <p><strong>Entitas A:</strong> {{ project.entity_a }} ({{ project.porsia * 100 }}%)</p>
-  <p><strong>Entitas B:</strong> {{ project.entity_b }} ({{ project.porsib * 100 }}%)</p>
-  <p><strong>Total Posisi Keuangan:</strong> Rp {{ "{:,.0f}".format(project.total_lr or 0) }}</p>
 
-  <h4>Pembagian Keuangan</h4>
-  <table>
-    <thead>
-      <tr>
-        <th>Entitas</th>
-        <th>Porsi (%)</th>
-        <th>Nilai Pembagian (Rp)</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>{{ project.entity_a }}</td>
-        <td>{{ project.porsia * 100 }}</td>
-        <td>Rp {{ "{:,.0f}".format(project.nilai_a or 0) }}</td>
-      </tr>
-      <tr>
-        <td>{{ project.entity_b }}</td>
-        <td>{{ project.porsib * 100 }}</td>
-        <td>Rp {{ "{:,.0f}".format(project.nilai_b or 0) }}</td>
-      </tr>
-    </tbody>
-  </table>
+  <div class="section">
+    <h2>Laporan Proyek</h2>
+    <p><strong>Nama Proyek:</strong> {{ project.project_name }}</p>
+    <p><strong>Entitas A:</strong> {{ project.entity_a }} ({{ project.porsia * 100 }}%)</p>
+    <p><strong>Entitas B:</strong> {{ project.entity_b }} ({{ project.porsib * 100 }}%)</p>
+    <p><strong>Total Posisi Keuangan:</strong> Rp {{ "{:,.0f}".format(project.total_lr or 0) }}</p>
+  </div>
 
-  <h4>Rincian Data Excel</h4>
-  <table>
-    <thead>
+  <div class="section">
+    <h4>Pembagian Keuangan</h4>
+    <table>
+      <thead>
+        <tr>
+          <th>Entitas</th>
+          <th>Porsi (%)</th>
+          <th>Nilai Pembagian (Rp)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{{ project.entity_a }}</td>
+          <td>{{ project.porsia * 100 }}</td>
+          <td>Rp {{ "{:,.0f}".format(project.nilai_a or 0) }}</td>
+        </tr>
+        <tr>
+          <td>{{ project.entity_b }}</td>
+          <td>{{ project.porsib * 100 }}</td>
+          <td>Rp {{ "{:,.0f}".format(project.nilai_b or 0) }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h4 style="text-align: center;">Diagram Pembagian Keuangan</h4>
+    <table style="width: 100%; table-layout: fixed;">
       <tr>
-        <th>Account Number</th>
-        <th>Text for B/S P&L Item</th>
-        <th>Total of Reporting Period</th>
+        <td style="text-align: center;">
+          <canvas id="pieChart" width="280" height="280"></canvas>
+        </td>
+        <td style="text-align: center;">
+          <canvas id="barChart" width="300" height="280"></canvas>
+        </td>
       </tr>
-    </thead>
-    <tbody>
-      {% for row in details %}
-      <tr>
-        <td>{{ row.account_number or '-' }}</td>
-        <td>{{ row.text_item or '-' }}</td>
-        <td>Rp {{ "{:,.0f}".format(row.total_reporting_period or 0) }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+    </table>
+  </div>
+
+  <div class="page-break"></div>
+
+  <div class="section">
+    <h4>Rincian Data dari Excel</h4>
+
+    {% set rows_per_page = 25 %}
+    {% for i in range(0, details|length, rows_per_page) %}
+      <table>
+        <thead>
+          <tr>
+            <th>Account Number</th>
+            <th>Text for B/S P&L Item</th>
+            <th>Total of Reporting Period</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in details[i:i+rows_per_page] %}
+          <tr>
+            <td>{{ row.account_number or '-' }}</td>
+            <td>{{ row.text_item or '-' }}</td>
+            <td>Rp {{ "{:,.0f}".format(row.total_reporting_period or 0) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      {% if not loop.last %}
+        <div class="page-break"></div>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  <script>
+    Chart.register(ChartDataLabels);
+
+    const labels = ['{{ project.entity_a }}', '{{ project.entity_b }}'];
+    const values = [{{ project.nilai_a }}, {{ project.nilai_b }}];
+
+    const pieCtx = document.getElementById('pieChart').getContext('2d');
+    new Chart(pieCtx, {
+      type: 'pie',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: values,
+          backgroundColor: ['rgba(54, 162, 235, 0.7)', 'rgba(255, 99, 132, 0.7)']
+        }]
+      },
+      options: {
+        plugins: {
+          datalabels: {
+            formatter: value => 'Rp ' + value.toLocaleString('id-ID'),
+            color: '#000',
+            font: { weight: 'bold', size: 12 }
+          },
+          legend: { position: 'bottom' }
+        }
+      },
+      plugins: [ChartDataLabels]
+    });
+
+    const barCtx = document.getElementById('barChart').getContext('2d');
+    new Chart(barCtx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Nilai Pembagian',
+          data: values,
+          backgroundColor: 'rgba(75, 192, 192, 0.7)'
+        }]
+      },
+      options: {
+        plugins: {
+          datalabels: {
+            anchor: 'end',
+            align: 'top',
+            formatter: value => 'Rp ' + value.toLocaleString('id-ID'),
+            color: '#000',
+            font: { weight: 'bold', size: 12 }
+          },
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: value => 'Rp ' + value.toLocaleString('id-ID')
+            }
+          }
+        }
+      },
+      plugins: [ChartDataLabels]
+    });
+  </script>
+
 </body>
 </html>

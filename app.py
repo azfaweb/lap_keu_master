@@ -363,6 +363,29 @@ with app.app_context():
         db.session.add_all([admin, user])
         db.session.commit()
         print("✅ Admin & User default berhasil dibuat.")
+        
+@app.route('/dashboard/project_full_pdf/<int:project_id>')
+@login_required
+def export_project_full_pdf(project_id):
+    project = Project.query.get_or_404(project_id)
+    details = ProjectDetail.query.filter_by(project_id=project.id).all()
+
+    html_content = render_template('export_pdf_with_chart.html', project=project, details=details)
+
+    api_key = os.getenv("HTML2PDF_API_KEY")
+    response = requests.post(
+        'https://api.html2pdf.app/v1/generate',
+        json={'html': html_content, 'apiKey': api_key}
+    )
+
+    if response.status_code == 200:
+        return send_file(
+            io.BytesIO(response.content),
+            download_name=f"Laporan_{project.project_name}.pdf",
+            as_attachment=True
+        )
+    else:
+        return f"Gagal export PDF. Status: {response.status_code}", 500
 
 if __name__ == '__main__':
     app.run(debug=True)
