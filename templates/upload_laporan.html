@@ -1,7 +1,7 @@
 {% extends 'layout.html' %}
 
 {% block content %}
-<h2>Upload Laporan Excel</h2>
+<h2>Upload Laporan Excel SAP</h2>
 
 {% if error %}
 <div class="alert alert-danger">{{ error }}</div>
@@ -9,9 +9,20 @@
 
 <form method="POST" enctype="multipart/form-data">
   <div class="mb-3">
-    <label for="file" class="form-label">Pilih File Excel:</label>
-    <input type="file" name="file" class="form-control" required>
+    <label for="file" class="form-label">Pilih File Excel (SAP Laba Rugi):</label>
+    <input type="file" name="file" class="form-control" accept=".xlsx" required>
   </div>
+
+  <div class="mb-3">
+    <label for="nomor_perjanjian" class="form-label">Nomor Perjanjian:</label>
+    <input type="text" name="nomor_perjanjian" class="form-control" required>
+  </div>
+
+  <div class="mb-3">
+    <label for="file_perjanjian" class="form-label">Upload Dokumen Perjanjian (PDF/DOCX):</label>
+    <input type="file" name="file_perjanjian" class="form-control" accept=".pdf,.doc,.docx" required>
+  </div>
+
   <button type="submit" class="btn btn-success">Upload dan Proses</button>
   <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Batal</a>
 </form>

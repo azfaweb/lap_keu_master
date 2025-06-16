@@ -9,33 +9,46 @@
   }
 
   body, td, th {
-    font-size: 18px;
+    font-size: 17px;
   }
 
   .btn {
-    font-size: 18px !important;
-    padding: 10px 20px !important;
+    font-size: 15px !important;
+    padding: 6px 14px !important;
   }
 
-  .table {
-    font-size: 17px;
-  }a
+  .table th, .table td {
+    vertical-align: middle !important;
+    text-align: center;
+  }
 
-  .table th {
-    font-weight: bold;
+  .btn-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  .btn-group-sm > a {
+    margin: 2px;
+  }
+
+  .table-striped tbody tr:nth-of-type(odd) {
+    background-color: #f9f9f9;
   }
 </style>
 
 <h2>Daftar Proyek</h2>
 
-<div class="d-flex justify-content-start mb-3">
+<div class="d-flex justify-content-start mb-3 flex-wrap gap-2">
   {% if current_user.role == 'admin' %}
-    <a href="{{ url_for('setup_project') }}" class="btn btn-success me-2">Tambah Proyek Baru</a>
-    <a href="{{ url_for('add_user') }}" class="btn btn-primary me-2">Tambah User</a>
-    <a href="{{ url_for('list_users') }}" class="btn btn-info me-2">Daftar User</a>
+    <a href="{{ url_for('setup_project') }}" class="btn btn-success">➕ Tambah Proyek</a>
+    <a href="{{ url_for('add_user') }}" class="btn btn-primary">👤 Tambah User</a>
+    <a href="{{ url_for('list_users') }}" class="btn btn-info">📋 Daftar User</a>
   {% endif %}
-  <a href="{{ url_for('export_projects_excel') }}" class="btn btn-outline-success me-2">Export Semua ke Excel</a>
-  <a href="{{ url_for('export_projects_pdf') }}" class="btn btn-outline-danger">Export Semua ke PDF</a>
+  <a href="{{ url_for('export_projects_excel') }}" class="btn btn-outline-success">📥 Export Excel</a>
+  <a href="{{ url_for('export_projects_pdf') }}" class="btn btn-outline-danger">🧾 Export PDF</a>
 </div>
 
 <table class="table table-striped table-bordered">
@@ -44,29 +57,43 @@
       <th>Nama Proyek</th>
       <th>Entitas A</th>
       <th>Porsi A (%)</th>
-      <th>Pembagian A (Rp)</th>
+      <th>Pembagian A</th>
       <th>Entitas B</th>
       <th>Porsi B (%)</th>
-      <th>Pembagian B (Rp)</th>
+      <th>Pembagian B</th>
+      <th>Nomor Perjanjian</th>
+      <th>File Perjanjian</th>
       <th>Aksi</th>
     </tr>
   </thead>
   <tbody>
     {% for project in projects %}
     <tr>
-      <td>{{ project.project_name }}</td>
+      <td style="text-align: left;">{{ project.project_name }}</td>
       <td>{{ project.entity_a }}</td>
       <td>{{ project.porsia * 100 | int }}</td>
-      <td>Rp {{ "{:,.0f}".format(project.nilai_a or 0) }}</td>
+      <td><strong>Rp {{ "{:,.0f}".format(project.nilai_a or 0) }}</strong></td>
       <td>{{ project.entity_b }}</td>
       <td>{{ project.porsib * 100 | int }}</td>
-      <td>Rp {{ "{:,.0f}".format(project.nilai_b or 0) }}</td>
+      <td><strong>Rp {{ "{:,.0f}".format(project.nilai_b or 0) }}</strong></td>
+      <td>{{ project.nomor_perjanjian or '-' }}</td>
       <td>
-        <a href="{{ url_for('view_project', project_id=project.id) }}" class="btn btn-primary btn-sm">Lihat</a>
-        {% if current_user.role == 'admin' %}
-          <a href="{{ url_for('edit_project', project_id=project.id) }}" class="btn btn-warning btn-sm">Edit</a>
-          <a href="{{ url_for('delete_project', project_id=project.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('Yakin?')">Delete</a>
+        {% if project.file_perjanjian %}
+          <a href="{{ url_for('static', filename='uploads/' ~ project.file_perjanjian) }}"
+             class="btn btn-outline-secondary btn-sm btn-action"
+             target="_blank">📎 File</a>
+        {% else %}
+          <span>-</span>
         {% endif %}
+      </td>
+      <td>
+        <div class="btn-group-sm d-flex flex-wrap justify-content-center">
+          <a href="{{ url_for('view_project', project_id=project.id) }}" class="btn btn-outline-primary btn-sm btn-action">🔍 Lihat</a>
+          {% if current_user.role == 'admin' %}
+            <a href="{{ url_for('edit_project', project_id=project.id) }}" class="btn btn-outline-secondary btn-sm btn-action">✏️ Edit</a>
+            <a href="{{ url_for('delete_project', project_id=project.id) }}" class="btn btn-outline-danger btn-sm btn-action" onclick="return confirm('Yakin ingin menghapus proyek ini?')">🗑️ Hapus</a>
+          {% endif %}
+        </div>
       </td>
     </tr>
     {% endfor %}

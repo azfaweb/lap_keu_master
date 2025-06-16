@@ -92,17 +92,68 @@ def setup_project():
         return redirect(url_for('dashboard'))
 
     if request.method == 'POST':
+        # Ambil file perjanjian & file excel SAP
+        file_perjanjian = request.files.get('file_perjanjian')
+        file_excel = request.files.get('file_excel')
+
+        # Validasi
+        if not (file_perjanjian and file_perjanjian.filename.endswith(('.pdf', '.docx'))):
+            return render_template('setup_project.html', error="File perjanjian harus PDF atau DOCX.")
+        if not (file_excel and file_excel.filename.endswith(('.xls', '.xlsx'))):
+            return render_template('setup_project.html', error="File Excel SAP harus .xls atau .xlsx")
+
+        # Simpan file perjanjian
+        perjanjian_filename = file_perjanjian.filename
+        file_perjanjian.save(os.path.join(UPLOAD_FOLDER, perjanjian_filename))
+
+        # Simpan data proyek
         project = Project(
             project_name=request.form['project_name'],
             entity_a=request.form['entity_a'],
             porsia=float(request.form['porsia']) / 100,
             entity_b=request.form['entity_b'],
             porsib=float(request.form['porsib']) / 100,
+            nomor_perjanjian=request.form['nomor_perjanjian'],
+            file_perjanjian=perjanjian_filename,
             user_id=current_user.id
         )
         db.session.add(project)
         db.session.commit()
-        return redirect(url_for('upload_laporan', project_id=project.id))
+
+        # Simpan & proses Excel SAP
+        excel_path = os.path.join(UPLOAD_FOLDER, file_excel.filename)
+        file_excel.save(excel_path)
+
+        try:
+            df = pd.read_excel(excel_path)
+            df_bersih = bersihkan_excel(df)
+            df_bersih['Total of Reporting Period'] = pd.to_numeric(df_bersih['Total of Reporting Period'], errors='coerce').fillna(0)
+
+            total = df_bersih['Total of Reporting Period'].sum()
+            project.total_lr = total
+            project.nilai_a = total * project.porsia
+            project.nilai_b = total * project.porsib
+            db.session.commit()
+
+            # Hapus detail lama (kalau ada)
+            ProjectDetail.query.filter_by(project_id=project.id).delete()
+
+            # Simpan detail baru
+            for _, row in df_bersih.iterrows():
+                detail = ProjectDetail(
+                    project_id=project.id,
+                    account_number=row.get('Account Number'),
+                    text_item=row.get('Text for B/S P&L Item'),
+                    total_reporting_period=row.get('Total of Reporting Period')
+                )
+                db.session.add(detail)
+            db.session.commit()
+
+        except Exception as e:
+            return render_template('setup_project.html', error=f"❌ Gagal proses Excel: {str(e)}")
+
+        return redirect(url_for('dashboard'))
+
     return render_template('setup_project.html')
 
 @app.route('/upload/<int:project_id>', methods=['GET', 'POST'])
@@ -112,6 +163,9 @@ def upload_laporan(project_id):
 
     if request.method == 'POST':
         file = request.files.get('file')
+        nomor_perjanjian = request.form.get('nomor_perjanjian')
+        file_perjanjian = request.files.get('file_perjanjian')
+
         if file and file.filename.endswith(('.xls', '.xlsx')):
             filepath = os.path.join(UPLOAD_FOLDER, file.filename)
             file.save(filepath)
@@ -125,6 +179,14 @@ def upload_laporan(project_id):
                 project.total_lr = total
                 project.nilai_a = total * project.porsia
                 project.nilai_b = total * project.porsib
+                project.nomor_perjanjian = nomor_perjanjian
+
+                if file_perjanjian and file_perjanjian.filename != '':
+                    filename_perjanjian = f"perjanjian_{project.id}_{file_perjanjian.filename}"
+                    path_perjanjian = os.path.join('static/uploads/perjanjian', filename_perjanjian)
+                    file_perjanjian.save(path_perjanjian)
+                    project.file_perjanjian = path_perjanjian
+
                 db.session.commit()
 
                 # Bersihkan detail lama
@@ -144,9 +206,9 @@ def upload_laporan(project_id):
                 return redirect(url_for('dashboard'))
 
             except Exception as e:
-                return render_template('upload_laporan.html', error=str(e))
+                return render_template('upload_laporan.html', project=project, error=str(e))
         else:
-            return render_template('upload_laporan.html', error="Upload file Excel yang valid.")
+            return render_template('upload_laporan.html', project=project, error="Upload file Excel yang valid.")
 
     return render_template('upload_laporan.html', project=project)
 

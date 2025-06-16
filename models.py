@@ -26,6 +26,9 @@ class Project(db.Model):
 
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     details = db.relationship('ProjectDetail', backref='project', lazy=True, cascade="all, delete-orphan")
+    
+    nomor_perjanjian = db.Column(db.String(100), nullable=True, default=None)
+    file_perjanjian = db.Column(db.String(255), nullable=True, default=None)
 
 class ProjectDetail(db.Model):
     __tablename__ = 'project_details'

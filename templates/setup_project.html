@@ -2,7 +2,7 @@
 
 {% block content %}
 <h2 class="mb-4">Setup Proyek dan Entitas</h2>
-<form method="POST" action="/setup">
+<form method="POST" action="/setup" enctype="multipart/form-data">
     <div class="mb-3">
         <label for="project_name" class="form-label">Nama Proyek</label>
         <input type="text" class="form-control" id="project_name" name="project_name" required>
@@ -23,6 +23,22 @@
         <label for="porsib" class="form-label">Porsi Entitas B (%)</label>
         <input type="number" class="form-control" id="porsib" name="porsib" min="0" max="100" required>
     </div>
+
+    <div class="mb-3">
+        <label for="nomor_perjanjian" class="form-label">Nomor Perjanjian:</label>
+        <input type="text" class="form-control" name="nomor_perjanjian" required>
+    </div>
+
+    <div class="mb-3">
+        <label for="file_perjanjian" class="form-label">Upload File Perjanjian (PDF):</label>
+        <input type="file" class="form-control" name="file_perjanjian" accept=".pdf,.docx" required>
+    </div>
+
+    <div class="mb-3">
+        <label for="file_excel" class="form-label">Upload File Excel SAP:</label>
+        <input type="file" class="form-control" name="file_excel" accept=".xls,.xlsx" required>
+    </div>
+
     <button type="submit" class="btn btn-primary">Lanjut Upload Laporan</button>
 </form>
 {% endblock %}
